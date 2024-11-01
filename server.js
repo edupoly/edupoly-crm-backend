@@ -16,14 +16,15 @@ app.use(bodyparser.json());
 mongoose.connect("mongodb+srv://sai:sai123456789@atlascluster.ym1yuin.mongodb.net/edulgm?retryWrites=true&w=majority&appName=AtlasCluster")
 
 
-var authenticate = async (req,res,next)=>{
+var adminauthenticate = async (req,res,next)=>{
     try {
        var token = req.headers.authorization;
        if(!token){
          return res.json({msg:"token missing"})
        }
-       var decoded = jwt.verify(token,secretkey);
+       var decoded =  jwt.verify(token,'secretkey');
        var user = await User.findById(decoded._doc._id);
+       console.log("user",user)
        if(!user){
         return res.json({msg:"user not found"})
        }
@@ -35,12 +36,18 @@ var authenticate = async (req,res,next)=>{
 }
 
 
-app.get("/",  async(req,res)=>{
+
+
+app.get("/", adminauthenticate, async(req,res)=>{
     try {
         var studentleads = await Lead.find({})
         if(studentleads){
-            console.log(studentleads)
-            res.json(studentleads)
+            console.log("studentleads",studentleads);
+            var modifieddta = studentleads.map((student)=>{
+                var obj = {id:student._id,name:student.name,mobile:student.mobile,intrestedCourse:student.intrestedCourse}
+                return obj
+            })
+            res.send(modifieddta)
         }
     } 
     catch (error) {
@@ -49,11 +56,21 @@ app.get("/",  async(req,res)=>{
 })
 
 
-app.post("/addlead",async(req,res)=>{
+app.get("/leaddetails/:id",adminauthenticate,async(req,res)=>{
+     try {
+        var lead = await Lead.findOne({_id:req.params.id})
+        res.send(lead)
+     } catch (error) {
+        res.json({msg:"err in finding lead details"})
+     }
+})
+
+
+
+app.post("/addlead",adminauthenticate,async(req,res)=>{
     try {
        var leaddata = req.body
        var newLead = new Lead(leaddata)
-
        var obj = {response:"unknown",name:"unknown",timestamp:Date.now()}
        newLead.remarks.push(obj)
        var newleadgen = await newLead.save()
@@ -67,7 +84,7 @@ app.post("/addlead",async(req,res)=>{
 })
 
 
-app.put("/addremark/:id",async(req,res)=>{
+app.put("/addremark/:id",adminauthenticate,async(req,res)=>{
     try {
         var newremark = {...req.body,timestamp:Date.now()}
         var remarkadded = await Lead.findOneAndUpdate({_id:req.params.id},{$push:{remarks:newremark}})
@@ -79,7 +96,7 @@ app.put("/addremark/:id",async(req,res)=>{
 })
 
 
-app.delete("/deletelead/:id",async(req,res)=>{
+app.delete("/deletelead/:id",adminauthenticate,async(req,res)=>{
     try {
         console.log("del lead")
         var deletelead = await Lead.findOneAndDelete({_id:req.params.id})
@@ -101,6 +118,8 @@ app.post("/signup",async(req,res)=>{
      }
 })
 
+
+
 app.post("/login",async(req,res)=>{
     try {
       var user = await User.findOne({username:req.body.username,password:req.body.password})
@@ -113,6 +132,13 @@ app.post("/login",async(req,res)=>{
 })
 
 
+app.get("/search",async(req,res)=>{
+
+})
+
+
 app.listen(7777,()=>{
     console.log("server is running on port 7777")
 })
+
+
