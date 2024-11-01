@@ -15,6 +15,7 @@ app.use(bodyparser.json());
 
 mongoose.connect("mongodb+srv://sai:sai123456789@atlascluster.ym1yuin.mongodb.net/edulgm?retryWrites=true&w=majority&appName=AtlasCluster")
 
+// eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyIkX18iOnsiYWN0aXZlUGF0aHMiOnsicGF0aHMiOnsiX2lkIjoiaW5pdCIsInVzZXJuYW1lIjoiaW5pdCIsInBhc3N3b3JkIjoiaW5pdCIsInJvbGUiOiJpbml0IiwiX192IjoiaW5pdCJ9LCJzdGF0ZXMiOnsiaW5pdCI6eyJfaWQiOnRydWUsInVzZXJuYW1lIjp0cnVlLCJwYXNzd29yZCI6dHJ1ZSwicm9sZSI6dHJ1ZSwiX192Ijp0cnVlfX19LCJza2lwSWQiOnRydWV9LCIkaXNOZXciOmZhbHNlLCJfZG9jIjp7Il9pZCI6IjY3MjEyZmQ5NzJkZGQwNzc4NjI5NmI4YyIsInVzZXJuYW1lIjoic2FpIiwicGFzc3dvcmQiOiIxMjMiLCJyb2xlIjoidXNlciIsIl9fdiI6MH0sImlhdCI6MTczMDQ0Mjc2MX0.Ct6SRp096E92DbqHdKMbHqXrYst7QJAVhoBs3O5arDM
 
 var adminauthenticate = async (req,res,next)=>{
     try {
@@ -132,8 +133,46 @@ app.post("/login",async(req,res)=>{
 })
 
 
-app.get("/search",async(req,res)=>{
-
+app.get("/search",adminauthenticate,async(req,res)=>{
+    try {
+        const results = await Lead.aggregate([
+            {
+              $search: {
+                index: "search", 
+                compound: {
+                  should: [
+                    {
+                      text: {
+                        query: req.query.term,              
+                        path: ["name", "intrestedCourse"]      
+                      }
+                    },
+                    {
+                      equals: {
+                        value: parseInt(req.query.term, 10),
+                        path: "mobile"                 
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          ])
+          if (results.length > 0) {
+            const modifiedData = results.map((student) => ({
+              id: student._id,
+              name: student.name,
+              mobile: student.mobile,
+              intrestedCourse: student.intrestedCourse,
+            }));
+            res.send(modifiedData);
+          } 
+          else {
+            res.json({ msg: "No leads found matching the search term" });
+          }
+    } catch (error) {
+        res.json({ msg: "Error in search operation" });
+    }  
 })
 
 
