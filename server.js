@@ -67,8 +67,6 @@ var auth = async(req,res,next)=>{
 }
 
 
-
-
 app.get("/", adminauthenticate, async (req, res) => {
     try {
         var page = parseInt(req.query.page) || 1;
