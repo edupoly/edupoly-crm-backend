@@ -216,7 +216,6 @@ app.get('/addmanager',auth,async(req,res)=>{
 app.put("/approvemanager/:id",auth,async(req,res)=>{
     try {
         const approvemanager = await User.findOneAndUpdate({_id:req.params.id},{ $set: { role: "manager" } },{ new: true })
-         console.log(approvemanager)
          res.json({msg:"approved"})
     } catch (error) {
         res.json({ msg: "Error in approving manager" });
@@ -226,7 +225,6 @@ app.put("/approvemanager/:id",auth,async(req,res)=>{
 app.put("/removemanager/:id",auth,async(req,res)=>{
     try {
         const removemanager = await User.findOneAndUpdate({_id:req.params.id},{ $set: { role: "user" } },{ new: true })
-         console.log(removemanager)
          res.json({msg:"manager removed"})
     } catch (error) {
         res.json({ msg: "Error in removing manager" });
