@@ -71,12 +71,10 @@ var auth = async(req,res,next)=>{
 
 app.get("/", adminauthenticate, async (req, res) => {
     try {
-        const page = parseInt(req.query.page) || 1;
-        const limit = parseInt(req.query.limit) || 2;
-
-        const skip = (page - 1) * limit;
-
-        const studentleads = await Lead.aggregate([
+        var page = parseInt(req.query.page) || 1;
+        var limit = parseInt(req.query.limit) || 2;
+        var skip = (page - 1) * limit;
+        var studentleads = await Lead.aggregate([
             { $sort: { updatedAt: -1 } },   
             { $skip: skip },                
             { $limit: limit },             
@@ -89,8 +87,13 @@ app.get("/", adminauthenticate, async (req, res) => {
                 }
             }
         ]);
-
-        res.send(studentleads);
+        if(studentleads.length>0){
+            res.send(studentleads);
+        }
+        else{
+            res.json({ msg: "No leads found" });
+        }
+        
     } catch (error) {
         res.json({ msg: "Error in finding student leads" });
     }
@@ -242,6 +245,7 @@ app.put("/approvemanager/:id",auth,async(req,res)=>{
     }
 })
 
+
 app.put("/removemanager/:id",auth,async(req,res)=>{
     try {
         const removemanager = await User.findOneAndUpdate({_id:req.params.id},{ $set: { role: "user" } },{ new: true })
@@ -255,5 +259,3 @@ app.put("/removemanager/:id",auth,async(req,res)=>{
 app.listen(7777,()=>{
     console.log("server is running on port 7777")
 })
-
-
