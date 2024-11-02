@@ -15,7 +15,6 @@ app.use(bodyparser.json());
 
 mongoose.connect("mongodb+srv://sai:sai123456789@atlascluster.ym1yuin.mongodb.net/edulgm?retryWrites=true&w=majority&appName=AtlasCluster")
 
-// eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyIkX18iOnsiYWN0aXZlUGF0aHMiOnsicGF0aHMiOnsiX2lkIjoiaW5pdCIsInVzZXJuYW1lIjoiaW5pdCIsInBhc3N3b3JkIjoiaW5pdCIsInJvbGUiOiJpbml0IiwiX192IjoiaW5pdCJ9LCJzdGF0ZXMiOnsiaW5pdCI6eyJfaWQiOnRydWUsInVzZXJuYW1lIjp0cnVlLCJwYXNzd29yZCI6dHJ1ZSwicm9sZSI6dHJ1ZSwiX192Ijp0cnVlfX19LCJza2lwSWQiOnRydWV9LCIkaXNOZXciOmZhbHNlLCJfZG9jIjp7Il9pZCI6IjY3MjEyZmQ5NzJkZGQwNzc4NjI5NmI4YyIsInVzZXJuYW1lIjoic2FpIiwicGFzc3dvcmQiOiIxMjMiLCJyb2xlIjoidXNlciIsIl9fdiI6MH0sImlhdCI6MTczMDQ0Mjc2MX0.Ct6SRp096E92DbqHdKMbHqXrYst7QJAVhoBs3O5arDM
 
 var adminauthenticate = async (req,res,next)=>{
     try {
@@ -37,6 +36,29 @@ var adminauthenticate = async (req,res,next)=>{
 }
 
 
+var auth = async(req,res,next)=>{
+    try {
+        var token = req.headers.authorization;
+        if(!token){
+          return res.json({msg:"token missing"})
+        }
+        var decoded =  jwt.verify(token,'secretkey');
+        var user = await User.findById(decoded._doc._id);
+        console.log("user",user)
+        if(!user){
+         return res.json({msg:"user not found"})
+        }
+        if(user.role==='admin'){
+           next()
+        }
+         else{
+            return res.json({msg:"you dont have access"})
+         }
+     }
+     catch (error) {
+         res.json({ message: 'Invalid token' });
+     }
+}
 
 
 app.get("/", adminauthenticate, async(req,res)=>{
@@ -173,6 +195,42 @@ app.get("/search",adminauthenticate,async(req,res)=>{
     } catch (error) {
         res.json({ msg: "Error in search operation" });
     }  
+})
+
+
+
+app.get('/addmanager',auth,async(req,res)=>{
+    try {
+        const users = await User.find()
+        const upddata = users.map((user)=>{
+            var obj = {id:user._id,username:user.username,role:user.role}
+            return obj
+        })
+        res.send(upddata)
+    } catch (error) {
+        res.json({ msg: "Error in finding data" });
+    } 
+})
+
+
+app.put("/approvemanager/:id",auth,async(req,res)=>{
+    try {
+        const approvemanager = await User.findOneAndUpdate({_id:req.params.id},{ $set: { role: "manager" } },{ new: true })
+         console.log(approvemanager)
+         res.json({msg:"approved"})
+    } catch (error) {
+        res.json({ msg: "Error in approving manager" });
+    }
+})
+
+app.put("/removemanager/:id",auth,async(req,res)=>{
+    try {
+        const removemanager = await User.findOneAndUpdate({_id:req.params.id},{ $set: { role: "user" } },{ new: true })
+         console.log(removemanager)
+         res.json({msg:"manager removed"})
+    } catch (error) {
+        res.json({ msg: "Error in removing manager" });
+    }
 })
 
 
