@@ -10,7 +10,7 @@ var leadSchema = mongoose.Schema({
     address:String,
     referredBy:String,
     remarks:Array
-})
+},{ timestamps: true })
 
 var Lead = mongoose.model('Lead',leadSchema)
 module.exports = Lead

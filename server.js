@@ -28,7 +28,13 @@ var adminauthenticate = async (req,res,next)=>{
        if(!user){
         return res.json({msg:"user not found"})
        }
-       next()
+       if(user.role==='admin' || user.role==='manager'){
+          next()
+       }
+       else{
+         return res.json({msg:"you dont have access admin approval required"})
+       }
+       
     }
     catch (error) {
         res.json({ message: 'Invalid token' });
@@ -61,22 +67,36 @@ var auth = async(req,res,next)=>{
 }
 
 
-app.get("/", adminauthenticate, async(req,res)=>{
+
+
+app.get("/", adminauthenticate, async (req, res) => {
     try {
-        var studentleads = await Lead.find({})
-        if(studentleads){
-            console.log("studentleads",studentleads);
-            var modifieddta = studentleads.map((student)=>{
-                var obj = {id:student._id,name:student.name,mobile:student.mobile,intrestedCourse:student.intrestedCourse}
-                return obj
-            })
-            res.send(modifieddta)
-        }
-    } 
-    catch (error) {
-        res.json({msg:"err in finding student leads"})
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 2;
+
+        const skip = (page - 1) * limit;
+
+        const studentleads = await Lead.aggregate([
+            { $sort: { updatedAt: -1 } },   
+            { $skip: skip },                
+            { $limit: limit },             
+            { 
+                $project: {                 
+                    _id: 1,
+                    name: 1,
+                    mobile: 1,
+                    intrestedCourse: 1
+                }
+            }
+        ]);
+
+        res.send(studentleads);
+    } catch (error) {
+        res.json({ msg: "Error in finding student leads" });
     }
-})
+});
+
+
 
 
 app.get("/leaddetails/:id",adminauthenticate,async(req,res)=>{
