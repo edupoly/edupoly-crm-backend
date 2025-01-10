@@ -13,7 +13,7 @@ app.use(express.static(__dirname+"/public"))
 app.use(bodyparser.urlencoded({ extended: false }));
 app.use(bodyparser.json());
 
-mongoose.connect("mongodb+srv://lakshman:ramu123@cluster0.mmeuw.mongodb.net/test?retryWrites=true&w=majority&appName=Cluster0")
+mongoose.connect("mongodb+srv://infoedupoly:edupoly83@cluster0.eitlw5l.mongodb.net/crm?retryWrites=true&w=majority&appName=Cluster0")
 
 
 var adminauthenticate = async (req,res,next)=>{
