@@ -13,7 +13,7 @@ app.use(express.static(__dirname+"/public"))
 app.use(bodyparser.urlencoded({ extended: false }));
 app.use(bodyparser.json());
 
-mongoose.connect("mongodb+srv://sai:sai123456789@atlascluster.ym1yuin.mongodb.net/edulgm?retryWrites=true&w=majority&appName=AtlasCluster")
+mongoose.connect("mongodb+srv://lakshman:ramu123@cluster0.mmeuw.mongodb.net/test?retryWrites=true&w=majority&appName=Cluster0")
 
 
 var adminauthenticate = async (req,res,next)=>{
@@ -70,7 +70,7 @@ var auth = async(req,res,next)=>{
 app.get("/", adminauthenticate, async (req, res) => {
     try {
         var page = parseInt(req.query.page) || 1;
-        var limit = parseInt(req.query.limit) || 2;
+        var limit = parseInt(req.query.limit) || 10;
         var skip = (page - 1) * limit;
         var studentleads = await Lead.aggregate([
             { $sort: { updatedAt: -1 } },   
@@ -79,9 +79,16 @@ app.get("/", adminauthenticate, async (req, res) => {
             { 
                 $project: {                 
                     _id: 1,
-                    name: 1,
-                    mobile: 1,
-                    intrestedCourse: 1
+                    name:1,
+                    experience:1,
+                    intrestedCourse:1,
+                    mode:1,
+                    academics:1,
+                    mobile:1,
+                    email:1,
+                    address:1,
+                    referredBy:1,
+                    remarks:1
                 }
             }
         ]);
@@ -252,8 +259,7 @@ app.put("/removemanager/:id",auth,async(req,res)=>{
         res.json({ msg: "Error in removing manager" });
     }
 })
-
-
+ 
 app.listen(7777,()=>{
     console.log("server is running on port 7777")
 })
